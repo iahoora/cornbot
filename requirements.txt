@@ -18,7 +18,7 @@ coincurve==20.0.0
 cytoolz==0.12.3
 dnspython==2.6.1
 ecdsa==0.19.0
-eth-account==0.5.9
+eth-account==0.13.0
 eth-hash==0.7.0
 eth-keyfile==0.5.1
 eth-keys==0.3.4
