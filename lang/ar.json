@@ -85,18 +85,14 @@
     "rewardhub_invite_button": "ادعُ الآن",
     "rewardhub_my_rewards_button": "مكافآتي",
     "back_to_rewardhub": "العودة إلى مركز المكافآت",
-    "capitalfund_invest_button": "Invest",
-    "capitalfund_claimprofit_button": "Claim Profit",
-    "capitalfund_no_funds": "You have no investments yet.",
-    "capitalfund_message": "📈 Capital Fund 📈\n\nYour investments:\n{fund_list}\n\n📥 Unclaimed profit: {unclaimed_profit} USDT\n💰 Total profit: {total_profit} USDT\n💸 Total invested: {total_invested} USDT",
-    "capitalfund_invest_message": "Enter the amount you would like to invest (minimum 1000 USDT).\n\nYour balance: {balance} USDT",
-    "capitalfund_no_profit": "There is no profit available to claim yet.",
-    "capitalfund_claimprofit_message": "Profit successfully claimed ✅",
-    "confirm": "Confirm",
-    "capitalfund_invest_minimum_amount": "Minimum investment amount is 1000 USDT.",
-    "capitalfund_invest_insufficient_balance": "Insufficient balance to invest.",
-    "capitalfund_invest_confirm_message": "You are about to invest {amount} USDT in Capital Fund.\n\nPress Confirm to continue or Cancel to abort.",
-    "capitalfund_invest_success": "Investment of {amount} USDT successful.",
-    "capitalfund_invest_cancelled": "Investment cancelled.",
-    "capitalfund_describe_how_it_works": "📈 *صندوق رأس المال — كيف يعمل؟* 📈\n\n1️⃣ *فترة القفل*: يتم تأمين إيداعك لمدة 30 يومًا.\n\n2️⃣ *الربح اليومي*: اربح *6 ٪* كل يوم — يُضاف تلقائيًا. 💸\n\n3️⃣ *مطالبة أسبوعية*: يمكنك سحب أرباحك المتراكمة كل 7 أيام. 🗓️\n\n4️⃣ *العائد الإجمالي*: بعد شهر، ستحصل على *180 ٪* ربح إضافي على استثمارك الأصلي. 🚀\n\n5️⃣ *الأمان أولًا*: تبقى الأموال مقفلة خلال فترة الحجز لحماية صندوق رأس المال وضمان دفعات مستقرة. 🔒\n\nجاهز للنمو؟ ابدأ رحلتك مع صندوق رأس المال اليوم!"
+    "joinus_message": "*🌟 انضم إلى فريقنا! 🌟*\n\nهل أنت شغوف بإحداث تأثير في مجالك؟ نبحث عن أفراد موهوبين للانضمام إلينا في الأدوار التالية:\n\n*📈 متداول\n💼 محلل مالي\n🌐 مدير مجتمع\n🎨 مصمم جرافيك\n📝 منشئ محتوى\n🤖 مهندس توجيهات*\n\nإذا كنت تمتلك المهارات والحافز، نريد أن نسمع منك! انقر على الزر أدناه لإرسال سيرتك الذاتية واتخاذ الخطوة الأولى نحو مسيرة مهنية مثيرة معنا.",
+    "send_your_resume": "📤 إرسال سيرتك الذاتية",
+    "join_channel_news_button": "انضم إلى قناة الأخبار",
+    "join_channel_chat_button": "انضم إلى الدردشة الجماعية",
+    "join_channel_trade_button": "انضم إلى قناة الصفقات",
+    "join_channel_message": "*🌟 انضم إلى مجتمعنا! 🌟*\n\nابق على اطلاع بأحدث الأخبار، ودردش مع الأعضاء الآخرين، واحصل على تحديثات التداول في الوقت الفعلي من خلال الانضمام إلى دردشة مجموعة Telegram الخاصة بنا. انقر على الأزرار أدناه للانضمام الآن!",
+    "referral_leaderboard": "🏆 قائمة المتصدرين للإحالة 🏆",
+    "referral_leaderboard_message": "🏆 قائمة المتصدرين للإحالة 🏆\n\n{users}\n\n👥 {total_invited} مستخدم مدعو\n💰 {total_invested} USDT مستثمر\nالتفاصيل /reward",
+    "dev_main_keyboard": "🔧 قائمة المطور",
+    "confirm": "تأكيد"
 }

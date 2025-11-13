@@ -640,6 +640,143 @@ async def callback_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         ])
         return await update.callback_query.edit_message_text(get_text(user.language, f'statistics_message').format(timeframe=stats_key.replace('_', ' '), success_trades=success_trades, failed_trades=failed_trades, percentage_profit=percentage_profit, total_trades=success_trades+failed_trades), reply_markup=keyboard, parse_mode='markdown')
 
+def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /help command - Show support/assistance message"""
+    user = User.objects(telegram_user_id=update.message.from_user.id).first()
+    if not user:
+        return start(update, context)
+    
+    if not is_joined(update.effective_user.id):
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton(get_text(user.language, 'join_channel_chat_button'), url='https://t.me/CornexTalk')],
+        ])
+        return update.message.reply_text(get_text(user.language, 'join_channel_message'), reply_markup=keyboard)
+    
+    keyboard_makrup = InlineKeyboardMarkup([
+        [InlineKeyboardButton(get_text(user.language, 'write_to_support'), url='https://t.me/CornexSup')],
+    ])
+    return update.message.reply_text(get_text(user.language, 'support_message'), reply_markup=keyboard_makrup)
+
+
+def profile_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /profile command - Show account summary"""
+    user = User.objects(telegram_user_id=update.message.from_user.id).first()
+    if not user:
+        return start(update, context)
+    
+    if not is_joined(update.effective_user.id):
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton(get_text(user.language, 'join_channel_chat_button'), url='https://t.me/CornexTalk')],
+        ])
+        return update.message.reply_text(get_text(user.language, 'join_channel_message'), reply_markup=keyboard)
+    
+    total_balance = Transaction.objects(user=user, status='completed').sum('amount')
+    in_calculation = Transaction.objects(user=user, status='completed', type='profit', created_at__gte=datetime.now() - timedelta(days=7)).sum('amount')
+    total_withdraw = Transaction.objects(user=user, status='completed', type='withdraw').sum('amount')
+    total_withdraw_fee = Transaction.objects(user=user, status='completed', type='withdraw_fee').sum('amount')
+    total_deposit = Transaction.objects(user=user, status='completed', type='deposit').sum('amount')
+    total_trade = Transaction.objects(user=user, status='completed', type='profit').count()
+
+    total_withdraw = (total_withdraw + total_withdraw_fee) * -1
+
+    join_date = user.joined_at.strftime('%Y-%m-%d %H:%M:%S')
+
+    keyboard_markup = InlineKeyboardMarkup([
+        [InlineKeyboardButton(get_text(user.language, 'menu_topup'), callback_data='menu_topup')],
+        [InlineKeyboardButton(get_text(user.language, 'menu_withdraw_funds'), callback_data='menu_withdraw_funds')],
+        [InlineKeyboardButton(get_text(user.language, 'menu_referral'), callback_data='menu_referral')],
+    ])
+
+    return update.message.reply_text(
+        get_text(user.language, 'account_summary_message').format(
+            balance=round(total_balance,2), in_calculation=round(in_calculation,2), total_withdraw=round(total_withdraw,2), total_trades=total_trade, join_date=join_date,
+        ),
+        reply_markup=keyboard_markup, 
+        parse_mode='markdown'
+    )
+
+
+def tradebot_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /tradebot command - Show trading center status"""
+    user = User.objects(telegram_user_id=update.message.from_user.id).first()
+    if not user:
+        return start(update, context)
+    
+    if not is_joined(update.effective_user.id):
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton(get_text(user.language, 'join_channel_chat_button'), url='https://t.me/CornexTalk')],
+        ])
+        return update.message.reply_text(get_text(user.language, 'join_channel_message'), reply_markup=keyboard)
+    
+    is_trade_active = user.is_trade_active
+    if not is_trade_active:
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton(get_text(user.language, 'start_trading'), callback_data='start_trading')],
+            [InlineKeyboardButton(get_text(user.language, 'tradebot_statistics_menu'), callback_data='tradebot_statistics_menu')],
+            [InlineKeyboardButton('Signals', url='https://t.me/CornexBase')],
+        ])
+        return update.message.reply_text(get_text(user.language, 'trading_status_message').format(status=get_text(user.language, 'stopped')), reply_markup=keyboard, parse_mode='markdown')
+    else:
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton(get_text(user.language, 'stop_trading'), callback_data='stop_trading')],
+            [InlineKeyboardButton(get_text(user.language, 'tradebot_statistics_menu'), callback_data='tradebot_statistics_menu')],
+            [InlineKeyboardButton('Signals', url='https://t.me/CornexBase')],
+        ])
+        return update.message.reply_text(get_text(user.language, 'trading_status_message').format(status=get_text(user.language, 'active')), reply_markup=keyboard, parse_mode='markdown')
+
+
+def referral_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /referral command - Show referral program"""
+    user = User.objects(telegram_user_id=update.message.from_user.id).first()
+    if not user:
+        return start(update, context)
+    
+    if not is_joined(update.effective_user.id):
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton(get_text(user.language, 'join_channel_chat_button'), url='https://t.me/CornexTalk')],
+        ])
+        return update.message.reply_text(get_text(user.language, 'join_channel_message'), reply_markup=keyboard)
+    
+    link = f'https://t.me/CornexBot?start=r{user.telegram_user_id}'
+    total_invited = User.objects(invited_by=user).count()
+    total_earned = Transaction.objects(user=user, type='referral').sum('amount')
+    
+    return update.message.reply_text(get_text(user.language, 'referral_message').format(link=link, total_invited=total_invited, total_income=total_earned), parse_mode='markdown')
+
+
+def faqs_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /faqs command - Show FAQ menu"""
+    user = User.objects(telegram_user_id=update.message.from_user.id).first()
+    if not user:
+        return start(update, context)
+    
+    if not is_joined(update.effective_user.id):
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton(get_text(user.language, 'join_channel_chat_button'), url='https://t.me/CornexTalk')],
+        ])
+        return update.message.reply_text(get_text(user.language, 'join_channel_message'), reply_markup=keyboard)
+    
+    keyboard_markup = InlineKeyboardMarkup([
+        [InlineKeyboardButton(get_text(user.language, 'faq_how_it_works_button'), callback_data='faq_how_it_works')],
+        [InlineKeyboardButton(get_text(user.language, 'faq_how_to_make_deposit_button'), callback_data='faq_how_to_make_deposit')],
+        [InlineKeyboardButton(get_text(user.language, 'faq_how_to_withdraw_funds_button'), callback_data='faq_how_to_withdraw_funds')],
+        [InlineKeyboardButton(get_text(user.language, 'faq_what_is_the_commistion_button'), callback_data='faq_what_is_the_commistion')],
+        [InlineKeyboardButton(get_text(user.language, 'faq_minimum_deposit_button'), callback_data='faq_minimum_deposit')],
+        [InlineKeyboardButton(get_text(user.language, 'faq_functionnality_description_button'), callback_data='faq_functionnality_description')],
+        [InlineKeyboardButton(get_text(user.language, 'faq_bot_trading_exchange_button'), callback_data='faq_bot_trading_exchange')],
+        [InlineKeyboardButton(get_text(user.language, 'faq_available_transactions_button'), callback_data='faq_available_transactions')],
+        [InlineKeyboardButton(get_text(user.language, 'faq_possible_risks_button'), callback_data='faq_possible_risks')],
+        [InlineKeyboardButton(get_text(user.language, 'faq_terms_of_use_button'), callback_data='faq_terms_of_use')],
+        [InlineKeyboardButton(get_text(user.language, 'faq_token_storage_button'), callback_data='faq_token_storage')],
+        [InlineKeyboardButton(get_text(user.language, 'faq_loss_of_token_button'), callback_data='faq_loss_of_token')],
+        [InlineKeyboardButton(get_text(user.language, 'faq_referral_program_button'), callback_data='faq_referral_program')],
+        [InlineKeyboardButton(get_text(user.language, 'faq_any_restrictions_button'), callback_data='faq_any_restrictions')],
+        [InlineKeyboardButton(get_text(user.language, 'faq_bot_stop_loss_point_button'), callback_data='faq_bot_stop_loss_point')],
+        [InlineKeyboardButton(get_text(user.language, 'faq_building_a_trust_button'), callback_data='faq_building_a_trust')],
+    ])
+    return update.message.reply_text(get_text(user.language, 'faq_message'), reply_markup=keyboard_markup, parse_mode='markdown')
+
+
 def set_lang_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = User.objects(telegram_user_id=update.message.from_user.id).first()
     if not user:
@@ -935,6 +1072,13 @@ def main() -> None:
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("lang", set_lang_command))
     application.add_handler(CommandHandler("reward", reward_hub_command))
+    
+    # Command shortcuts for main menu items
+    application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CommandHandler("profile", profile_command))
+    application.add_handler(CommandHandler("tradebot", tradebot_command))
+    application.add_handler(CommandHandler("referral", referral_command))
+    application.add_handler(CommandHandler("faqs", faqs_command))
 
     application.add_handler(CommandHandler("cw", confirm_withdraw))
     application.add_handler(CommandHandler("cws", confirm_withdraw_status))
