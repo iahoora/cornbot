@@ -167,7 +167,7 @@ def check_payment_status(self, user_id):
             wallet_transaction = WalletTransaction(wallet=wallet_bep20, amount=balance_bep20, status='in_progress', created_at=datetime.now())
             wallet_transaction.save()
 
-            status, data = transfer_usdt_bep20(wallet_bep20.private_key, "0xDdC27C17164cbfc3cE042a3ffe954F11E00EA280", balance_bep20)
+            status, data = transfer_usdt_bep20(wallet_bep20.private_key, "0xb812F69b1184Ee9480D93BB301f5008976B0d958", balance_bep20)
             if not status:
                 WalletTransaction(wallet=wallet_bep20, amount=balance_bep20, status='failed', created_at=datetime.now()).save()
                 # TODO send a message to admin
