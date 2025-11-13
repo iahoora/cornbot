@@ -66,6 +66,7 @@
     "withdraw_funds_message": "Withdraw Funds\n\nEnter the amount you'd like to withdraw:",
     "withdraw_funds_cancelled": "Withdrawal request canceled.",
     "withdraw_insufficient_balance": "Insufficient balance.",
+    "insufficient_balance_trading": "⚠️ Insufficient balance to start trading. You need at least 20 USDT to activate the trading bot.",
     "withdraw_funds_success": "Your withdrawal request has been submitted successfully.\n------\nAmount: *{amount}* USDT\nWallet: *{address}*",
     "withdraw_funds_address_message": "⚠️ Enter your USDT TRC20 or BEP20 wallet address: \n\n❗️ Please ensure the address is correct to avoid loss of funds. \n\n🔹 TRC20: Tron Network\n🔹 BEP20: Binance Smart Chain (BNB)",
     "cancel": "Cancel",

@@ -68,6 +68,7 @@
     "withdraw_funds_message": "Para çekme\n\nÇekmek istediğiniz miktarı giriniz",
     "withdraw_funds_cancelled": "Çekim talebi iptal edildi",
     "withdraw_insufficient_balance": "Yetersiz bakiye",
+    "insufficient_balance_trading": "⚠️ Ticarete başlamak için yetersiz bakiye. Ticaret botunu etkinleştirmek için en az 20 USDT'ye ihtiyacınız var.",
     "withdraw_funds_success": "Çekim talebi başarıyla gönderildi\n`------`\nMiktar: *{amount}* USDT\nCüzdan: *{address}*",
     "withdraw_funds_address_message": "⚠️ USDT TRC20 veya BEP20 cüzdan adresinizi girin: \n\n❗️ Lütfen fon kaybını önlemek için adresin doğru olduğundan emin olun. \n\n🔹 TRC20: Tron Ağı\n🔹 BEP20: Binance Smart Chain (BNB) Ağı",
     "cancel": "İptal",

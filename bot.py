@@ -513,6 +513,14 @@ async def callback_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         # send qr code
         return await context.bot.send_photo(chat_id=update.callback_query.from_user.id, photo=open(qr_code, 'rb'))
     elif callback_data == 'start_trading':
+        balance = Transaction.objects(user=user, status='completed').sum('amount')
+        
+        if balance < 20:
+            return await update.callback_query.answer(
+                text=get_text(user.language, 'insufficient_balance_trading'),
+                show_alert=True
+            )
+        
         keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton(get_text(user.language, 'stop_trading'), callback_data='stop_trading')],
             [InlineKeyboardButton(get_text(user.language, 'tradebot_statistics_menu'), callback_data='tradebot_statistics_menu')],
