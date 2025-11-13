@@ -20,7 +20,7 @@ dnspython==2.6.1
 ecdsa==0.19.0
 eth-account==0.13.0
 eth-hash==0.7.0
-eth-keyfile==0.5.1
+eth-keyfile==0.8.1
 eth-keys==0.3.4
 eth-rlp==0.2.1
 eth-typing==4.4.0
