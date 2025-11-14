@@ -209,7 +209,7 @@ def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton(get_text(user.language, 'join_channel_chat_button'), url='https://t.me/CornexBase')],
         ])
-        return update.message.reply_text(get_text(user.language, 'join_channel_message'), reply_markup=keyboard, parse_mode="markdown"))
+        return update.message.reply_text(get_text(user.language, 'join_channel_message'), reply_markup=keyboard, parse_mode="markdown")
     
     if user.step == 'main_menu':
         if update.message.text == get_text(user.language, 'menu_tradebot'):
@@ -650,7 +650,7 @@ def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton(get_text(user.language, 'join_channel_chat_button'), url='https://t.me/CornexBase')],
         ])
-        return update.message.reply_text(get_text(user.language, 'join_channel_message'), reply_markup=keyboard, parse_mode="markdown"))
+        return update.message.reply_text(get_text(user.language, 'join_channel_message'), reply_markup=keyboard, parse_mode="markdown")
     
     keyboard_makrup = InlineKeyboardMarkup([
         [InlineKeyboardButton(get_text(user.language, 'write_to_support'), url='https://t.me/CornexSup')],
@@ -668,7 +668,7 @@ def profile_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton(get_text(user.language, 'join_channel_chat_button'), url='https://t.me/CornexBase')],
         ])
-        return update.message.reply_text(get_text(user.language, 'join_channel_message'), reply_markup=keyboard, parse_mode="markdown"))
+        return update.message.reply_text(get_text(user.language, 'join_channel_message'), reply_markup=keyboard, parse_mode="markdown")
     
     total_balance = Transaction.objects(user=user, status='completed').sum('amount')
     in_calculation = Transaction.objects(user=user, status='completed', type='profit', created_at__gte=datetime.now() - timedelta(days=7)).sum('amount')
@@ -706,7 +706,7 @@ def tradebot_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton(get_text(user.language, 'join_channel_chat_button'), url='https://t.me/CornexBase')],
         ])
-        return update.message.reply_text(get_text(user.language, 'join_channel_message'), reply_markup=keyboard, parse_mode="markdown"))
+        return update.message.reply_text(get_text(user.language, 'join_channel_message'), reply_markup=keyboard, parse_mode="markdown")
     
     is_trade_active = user.is_trade_active
     if not is_trade_active:
@@ -735,7 +735,7 @@ def referral_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton(get_text(user.language, 'join_channel_chat_button'), url='https://t.me/CornexBase')],
         ])
-        return update.message.reply_text(get_text(user.language, 'join_channel_message'), reply_markup=keyboard, parse_mode="markdown"))
+        return update.message.reply_text(get_text(user.language, 'join_channel_message'), reply_markup=keyboard, parse_mode="markdown")
     
     link = f'https://t.me/CornexBot?start=r{user.telegram_user_id}'
     total_invited = User.objects(invited_by=user).count()
@@ -754,7 +754,7 @@ def faqs_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton(get_text(user.language, 'join_channel_chat_button'), url='https://t.me/CornexBase')],
         ])
-        return update.message.reply_text(get_text(user.language, 'join_channel_message'), reply_markup=keyboard, parse_mode="markdown"))
+        return update.message.reply_text(get_text(user.language, 'join_channel_message'), reply_markup=keyboard, parse_mode="markdown")
     
     keyboard_markup = InlineKeyboardMarkup([
         [InlineKeyboardButton(get_text(user.language, 'faq_how_it_works_button'), callback_data='faq_how_it_works')],
