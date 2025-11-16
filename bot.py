@@ -240,11 +240,19 @@ def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
             join_date = user.joined_at.strftime('%Y-%m-%d %H:%M:%S')
 
-            keyboard_markup = InlineKeyboardMarkup([
+            buttons = [
                 [InlineKeyboardButton(get_text(user.language, 'menu_topup'), callback_data='menu_topup')],
                 [InlineKeyboardButton(get_text(user.language, 'menu_withdraw_funds'), callback_data='menu_withdraw_funds')],
                 [InlineKeyboardButton(get_text(user.language, 'menu_referral'), callback_data='menu_referral')],
-            ])
+            ]
+            # Demo controls in profile
+            if getattr(user, 'demo_mode', False):
+                buttons.append([InlineKeyboardButton(get_text(user.language, 'demo.disable'), callback_data='disable_demo')])
+            else:
+                buttons.append([InlineKeyboardButton(get_text(user.language, 'demo.enable'), callback_data='enable_demo')])
+            if getattr(user, 'demo_claimed_at', None) is None:
+                buttons.append([InlineKeyboardButton(get_text(user.language, 'demo.claim'), callback_data='claim_demo')])
+            keyboard_markup = InlineKeyboardMarkup(buttons)
 
             return update.message.reply_text(
                 get_text(user.language, 'account_summary_message').format(
@@ -648,11 +656,19 @@ async def callback_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
         join_date = user.joined_at.strftime('%Y-%m-%d %H:%M:%S')
 
-        keyboard_markup = InlineKeyboardMarkup([
+        buttons = [
             [InlineKeyboardButton(get_text(user.language, 'menu_topup'), callback_data='menu_topup')],
             [InlineKeyboardButton(get_text(user.language, 'menu_withdraw_funds'), callback_data='menu_withdraw_funds')],
             [InlineKeyboardButton(get_text(user.language, 'menu_referral'), callback_data='menu_referral')],
-        ])
+        ]
+        # Demo controls in profile
+        if getattr(user, 'demo_mode', False):
+            buttons.append([InlineKeyboardButton(get_text(user.language, 'demo.disable'), callback_data='disable_demo')])
+        else:
+            buttons.append([InlineKeyboardButton(get_text(user.language, 'demo.enable'), callback_data='enable_demo')])
+        if getattr(user, 'demo_claimed_at', None) is None:
+            buttons.append([InlineKeyboardButton(get_text(user.language, 'demo.claim'), callback_data='claim_demo')])
+        keyboard_markup = InlineKeyboardMarkup(buttons)
         return await update.callback_query.edit_message_text(get_text(user.language, 'account_summary_message').format(
                     balance=round(total_balance,2), in_calculation=round(in_calculation,2), total_withdraw=round(total_withdraw,2), total_trades=total_trade, join_date=join_date,
                 ), reply_markup=keyboard_markup, parse_mode='markdown')
