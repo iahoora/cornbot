@@ -591,20 +591,20 @@ async def callback_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         user.save()
         await update.callback_query.edit_message_text(get_text(user.language, 'trading_status_message').format(status=get_text(user.language, 'active')), reply_markup=keyboard, parse_mode='markdown')
         # After starting bot, offer demo activation/claim
-        demo_buttons = []
-        if not getattr(user, 'demo_mode', False):
-            demo_buttons.append([InlineKeyboardButton(get_text(lang, 'demo.enable'), callback_data='enable_demo')])
-        else:
-            demo_buttons.append([InlineKeyboardButton(get_text(lang, 'demo.disable'), callback_data='disable_demo')])
-        # Claim button visible if not claimed
-        if getattr(user, 'demo_claimed_at', None) is None:
-            demo_buttons.append([InlineKeyboardButton(get_text(lang, 'demo.claim'), callback_data='claim_demo')])
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=f"🧪 {get_text(lang, 'demo.offer_title')}\n\n{get_text(lang, 'demo.offer_body')}",
-            reply_markup=InlineKeyboardMarkup(demo_buttons),
-            parse_mode='markdown'
-        )
+        # demo_buttons = []
+        # if not getattr(user, 'demo_mode', False):
+        #     demo_buttons.append([InlineKeyboardButton(get_text(lang, 'demo.enable'), callback_data='enable_demo')])
+        # else:
+        #     demo_buttons.append([InlineKeyboardButton(get_text(lang, 'demo.disable'), callback_data='disable_demo')])
+        # # Claim button visible if not claimed
+        # if getattr(user, 'demo_claimed_at', None) is None:
+        #     demo_buttons.append([InlineKeyboardButton(get_text(lang, 'demo.claim'), callback_data='claim_demo')])
+        # await context.bot.send_message(
+        #     chat_id=update.effective_chat.id,
+        #     text=f"🧪 {get_text(lang, 'demo.offer_title')}\n\n{get_text(lang, 'demo.offer_body')}",
+        #     reply_markup=InlineKeyboardMarkup(demo_buttons),
+        #     parse_mode='markdown'
+        # )
         return
     elif callback_data == 'stop_trading':
         keyboard = InlineKeyboardMarkup([
