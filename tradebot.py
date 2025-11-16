@@ -13,6 +13,7 @@ def send_message(chat_id, text):
                          data={'chat_id': chat_id, 'text': text, 'parse_mode': 'markdown'}).json()
 
 def get_balance(user):
+    # Real balance only; demo handled separately
     balance = Transaction.objects(user=user, status='completed').sum('amount')
     return balance
 
@@ -32,14 +33,20 @@ while True:
     users = User.objects(is_trade_active=True)
 
     for user in users:
-        balance = get_balance(user)
-        profit = balance * percentage / 100000
-
-        if profit != 0:
-            print(f'profit for user {user.telegram_user_id}: {profit}')
-            
-            transaction = Transaction(user=user, amount=profit, type='profit', status='completed', description=f'profit from trade {trade.id}', created_at=datetime.now())
-            transaction.save()
+        if getattr(user, 'demo_mode', False):
+            demo_base = getattr(user, 'demo_balance', 0.0) or 0.0
+            profit = demo_base * percentage / 100000
+            if profit != 0:
+                print(f'demo profit for user {user.telegram_user_id}: {profit}')
+                user.demo_balance = (user.demo_balance or 0.0) + float(profit)
+                user.save()
+        else:
+            balance = get_balance(user)
+            profit = balance * percentage / 100000
+            if profit != 0:
+                print(f'profit for user {user.telegram_user_id}: {profit}')
+                transaction = Transaction(user=user, amount=profit, type='profit', status='completed', description=f'profit from trade {trade.id}', created_at=datetime.now())
+                transaction.save()
 
     try:
         send_message(CHANNEL_ID, f'Trade Info\nPair: *{pair}*\nProfit: *{trade.percentage}%*\nResult: *{emoji}{trade.status}*\n\n[@CornexBot](https://t.me/CornexBot)')

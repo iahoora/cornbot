@@ -419,6 +419,7 @@ async def callback_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     callback_data = update.callback_query.data
 
     user = User.objects(telegram_user_id=update.callback_query.from_user.id).first()
+    lang = user.language if user and user.language else 'en'
 
     if re.findall(r'set_lang_', callback_data):
         print(callback_data.split('_'))
@@ -513,13 +514,11 @@ async def callback_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         # send qr code
         return await context.bot.send_photo(chat_id=update.callback_query.from_user.id, photo=open(qr_code, 'rb'))
     elif callback_data == 'start_trading':
-        balance = Transaction.objects(user=user, status='completed').sum('amount')
-        
-        if balance < 20:
-            return await update.callback_query.answer(
-                text=get_text(user.language, 'insufficient_balance_trading'),
-                show_alert=True
-            )
+        balance = Transaction.objects(user=user, status='completed').sum('amount') or 0
+        # Allow starting if user has sufficient real balance OR has demo mode enabled (claimed or not)
+        # If both are insufficient (no demo mode and real balance < 20), block
+        if balance < 20 and not getattr(user, 'demo_mode', False):
+            return await update.callback_query.answer(text=get_text(user.language, 'insufficient_balance_trading'), show_alert=True)
         
         keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton(get_text(user.language, 'stop_trading'), callback_data='stop_trading')],
@@ -528,7 +527,23 @@ async def callback_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         ])
         user.is_trade_active = True
         user.save()
-        return await update.callback_query.edit_message_text(get_text(user.language, 'trading_status_message').format(status=get_text(user.language, 'active')), reply_markup=keyboard, parse_mode='markdown')
+        await update.callback_query.edit_message_text(get_text(user.language, 'trading_status_message').format(status=get_text(user.language, 'active')), reply_markup=keyboard, parse_mode='markdown')
+        # After starting bot, offer demo activation/claim
+        demo_buttons = []
+        if not getattr(user, 'demo_mode', False):
+            demo_buttons.append([InlineKeyboardButton(get_text(lang, 'demo.enable'), callback_data='enable_demo')])
+        else:
+            demo_buttons.append([InlineKeyboardButton(get_text(lang, 'demo.disable'), callback_data='disable_demo')])
+        # Claim button visible if not claimed
+        if getattr(user, 'demo_claimed_at', None) is None:
+            demo_buttons.append([InlineKeyboardButton(get_text(lang, 'demo.claim'), callback_data='claim_demo')])
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"🧪 {get_text(lang, 'demo.offer_title')}\n\n{get_text(lang, 'demo.offer_body')}",
+            reply_markup=InlineKeyboardMarkup(demo_buttons),
+            parse_mode='markdown'
+        )
+        return
     elif callback_data == 'stop_trading':
         keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton(get_text(user.language, 'start_trading'), callback_data='start_trading')],
@@ -538,6 +553,51 @@ async def callback_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         user.is_trade_active = False
         user.save()
         return await update.callback_query.edit_message_text(get_text(user.language, 'trading_status_message').format(status=get_text(user.language, 'stopped')), reply_markup=keyboard, parse_mode='markdown')
+    elif callback_data == 'enable_demo':
+        user.demo_mode = True
+        user.save()
+        await update.callback_query.answer(get_text(lang, 'demo.mode_on_notice'), show_alert=True)
+        # Refresh current message buttons if applicable
+        try:
+            demo_buttons = [
+                [InlineKeyboardButton(get_text(lang, 'demo.disable'), callback_data='disable_demo')]
+            ]
+            if getattr(user, 'demo_claimed_at', None) is None:
+                demo_buttons.append([InlineKeyboardButton(get_text(lang, 'demo.claim'), callback_data='claim_demo')])
+            await update.callback_query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(demo_buttons))
+        except Exception:
+            pass
+        return
+    elif callback_data == 'disable_demo':
+        user.demo_mode = False
+        user.save()
+        await update.callback_query.answer(get_text(lang, 'demo.mode_off_notice'), show_alert=True)
+        try:
+            demo_buttons = [
+                [InlineKeyboardButton(get_text(lang, 'demo.enable'), callback_data='enable_demo')]
+            ]
+            await update.callback_query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(demo_buttons))
+        except Exception:
+            pass
+        return
+    elif callback_data == 'claim_demo':
+        if not getattr(user, 'demo_mode', False):
+            return await update.callback_query.answer(get_text(lang, 'demo.require_enable'), show_alert=True)
+        if getattr(user, 'demo_claimed_at', None) is not None:
+            return await update.callback_query.answer(get_text(lang, 'demo.claimed_already'), show_alert=True)
+        user.demo_balance = 1000.0
+        user.demo_claimed_at = datetime.now()
+        user.save()
+        await update.callback_query.answer(get_text(lang, 'demo.claim_success'), show_alert=True)
+        # Hide claim button after success
+        try:
+            demo_buttons = [
+                [InlineKeyboardButton(get_text(lang, 'demo.disable'), callback_data='disable_demo')]
+            ]
+            await update.callback_query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(demo_buttons))
+        except Exception:
+            pass
+        return
     elif callback_data == 'menu_referral':
         link = f'https://t.me/CornextBot?start=r{user.telegram_user_id}'
         total_invited = User.objects(invited_by=user).count()

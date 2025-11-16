@@ -94,5 +94,18 @@
     "referral_leaderboard": "🏆 جدول رتبه‌بندی معرفی 🏆",
     "referral_leaderboard_message": "🏆 جدول رتبه‌بندی معرفی 🏆\n\n{users}\n\n👥 {total_invited} کاربر دعوت شده\n💰 {total_invested} USDT سرمایه‌گذاری شده\nجزئیات /reward",
     "dev_main_keyboard": "🔧 منوی توسعه‌دهنده",
-    "confirm": "تأیید"
+    "confirm": "تأیید",
+    "demo.enable": "🧪 Enable Demo Mode",
+    "demo.disable": "🧪 Disable Demo Mode",
+    "demo.claim": "🎁 Claim 1000 USDT Demo",
+    "demo.offer_title": "Try Demo Trading",
+    "demo.offer_body": "Enable demo mode to trade risk-free. Claim a one-time 1000 USDT demo balance. Demo funds are not withdrawable. You can switch off demo mode anytime to trade with real funds.",
+    "demo.claim_success": "🎉 Demo balance credited: 1000 USDT. Happy trading!",
+    "demo.claimed_already": "You have already claimed your demo balance.",
+    "demo.mode_on_notice": "Demo mode is now ON. Trades will use your demo balance.",
+    "demo.mode_off_notice": "Demo mode is now OFF. Trades will use your real balance.",
+    "demo.require_enable": "Please enable demo mode first to claim the demo balance.",
+    "demo.insufficient_demo_balance": "Insufficient demo balance for this action.",
+    "demo.use_real_prompt": "To trade with real funds, disable demo mode first.",
+    "demo.not_withdrawable": "Demo funds are for simulation only and cannot be withdrawn."
 }
