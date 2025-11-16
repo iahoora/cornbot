@@ -25,6 +25,7 @@ import json
 from decimal import Decimal
 from kombu import Exchange, Queue
 from celery.schedules import crontab
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 app = Celery('tasks', broker='redis://localhost:6379/1')
 
@@ -336,6 +337,36 @@ def broadcast_investors_task(self, message):
         balance = Transaction.objects(user=user, status='completed').sum('amount') or 0
         if balance > 0:
             send_message_queue.apply_async(args=[user.telegram_user_id, message])
+
+@app.task(bind=True, queue='messages')
+def broadcast_demo_task(self, message=None):
+    """Broadcast demo trading announcement to all users with inline buttons."""
+    text = message or (
+        "🧪 Try Demo Trading\n\n"
+        "Claim your one-time 1000 USDT demo balance and trade risk-free.\n"
+        "Demo funds are not withdrawable. You can disable demo mode anytime to trade with real funds."
+    )
+    # Prebuild reply_markup JSON
+    reply_markup = {
+        "inline_keyboard": [
+            [{"text": "🧪 Enable Demo Mode", "callback_data": "enable_demo"}],
+            [{"text": "🎁 Claim 1000 USDT Demo", "callback_data": "claim_demo"}]
+        ]
+    }
+    for user in User.objects():
+        try:
+            requests.post(
+                f'https://api.telegram.org/bot8469039154:AAEA7WRST1ULUx3xxDBJPA70lDS0M-fBxcA/sendMessage',
+                data={
+                    'chat_id': user.telegram_user_id,
+                    'text': text,
+                    'parse_mode': 'markdown',
+                    'reply_markup': json.dumps(reply_markup)
+                }
+            )
+        except Exception as e:
+            # Don't fail whole broadcast on single user failure
+            logging.error(f"Failed to send demo broadcast to {user.telegram_user_id}: {e}")
 
 @app.task(bind=True)
 def capitalfund_maintenance(self):

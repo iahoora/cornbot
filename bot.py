@@ -24,14 +24,14 @@ import re
 from random import randint
 from utils.tronTool import check_usdt_balance, transfer_usdt_to_address, transfer_trx, create_account
 from utils.bep20Tool import check_balance_usdt as check_balance_bep20, create_bep20_wallet
-from tasks import check_payment_status, reward_invited_user, send_usdt, send_message_queue, broadcast_all_task, broadcast_investors_task
+from tasks import check_payment_status, reward_invited_user, send_usdt, send_message_queue, broadcast_all_task, broadcast_investors_task, broadcast_demo_task
 import requests
 
 # Define your bot token
 BOT_TOKEN = '8469039154:AAEA7WRST1ULUx3xxDBJPA70lDS0M-fBxcA'
 WITHDRAW_GROUP = -457191733151
 ADMIN_ID = 7730427593
-ADMIN_IDS = [7730427593, 7730427593]
+ADMIN_IDS = [7730427593, 7586726564]
 LOG_GROUP = -10027550338399
 
 
@@ -143,6 +143,16 @@ def broadcast_investors(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     return update.message.reply_text('Broadcast queued for investors')
 
+def broadcast_demo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if update.effective_user.id not in ADMIN_IDS:
+        return
+    # Optional custom message: /broadcast_demo <message>
+    try:
+        _, message = update.message.text.split(' ', 1)
+    except ValueError:
+        message = None
+    broadcast_demo_task.apply_async(args=[message])
+    return update.message.reply_text('Demo broadcast queued for all users')
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if update.effective_chat.type in ['group', 'supergroup' ,'channel']:
@@ -1235,6 +1245,7 @@ def main() -> None:
     application.add_handler(CommandHandler("check_deposits", check_deposits))
     application.add_handler(CommandHandler("broadcast", broadcast_message))
     application.add_handler(CommandHandler("broadcast_investors", broadcast_investors))
+    application.add_handler(CommandHandler("broadcast_demo", broadcast_demo))
     application.add_handler(CommandHandler("withdraw_reqs", withdraw_requests))
     application.add_handler(CommandHandler("top_inviter", top_inviter))
     application.add_handler(CommandHandler("dev", dev_main_keyboard_command))
