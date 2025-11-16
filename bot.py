@@ -193,6 +193,21 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         user.step = 'main_menu'
         user.save()
         await update.message.reply_text(get_text(user.language, 'welcome_back').format(name=update.effective_user.first_name), reply_markup=keyboard, parse_mode='Markdown')
+        # Send demo offer after welcome
+        demo_buttons = []
+        if not getattr(user, 'demo_mode', False):
+            demo_buttons.append([InlineKeyboardButton(get_text(user.language, 'demo.enable'), callback_data='enable_demo')])
+        else:
+            demo_buttons.append([InlineKeyboardButton(get_text(user.language, 'demo.disable'), callback_data='disable_demo')])
+        if getattr(user, 'demo_claimed_at', None) is None:
+            demo_buttons.append([InlineKeyboardButton(get_text(user.language, 'demo.claim'), callback_data='claim_demo')])
+        if len(demo_buttons) > 0:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=f"🧪 {get_text(user.language, 'demo.offer_title')}\n\n{get_text(user.language, 'demo.offer_body')}",
+                reply_markup=InlineKeyboardMarkup(demo_buttons),
+                parse_mode='markdown'
+            )
 
 
 def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -229,12 +244,20 @@ def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 ])
                 return update.message.reply_text(get_text(user.language, 'trading_status_message').format(status=get_text(user.language, 'active')), reply_markup=keyboard, parse_mode='markdown')
         elif update.message.text == get_text(user.language, 'menu_account'):
-            total_balance = Transaction.objects(user=user, status='completed').sum('amount')
-            in_calculation = Transaction.objects(user=user, status='completed', type='profit', created_at__gte=datetime.now() - timedelta(days=7)).sum('amount')
-            total_withdraw = Transaction.objects(user=user, status='completed', type='withdraw').sum('amount')
-            total_withdraw_fee = Transaction.objects(user=user, status='completed', type='withdraw_fee').sum('amount')
-            total_deposit = Transaction.objects(user=user, status='completed', type='deposit').sum('amount')
-            total_trade = Transaction.objects(user=user, status='completed', type='profit').count()
+            if getattr(user, 'demo_mode', False):
+                total_balance = round(float(user.demo_balance or 0.0), 2)
+                in_calculation = 0
+                total_withdraw = 0
+                total_withdraw_fee = 0
+                total_deposit = 0
+                total_trade = 0
+            else:
+                total_balance = Transaction.objects(user=user, status='completed').sum('amount')
+                in_calculation = Transaction.objects(user=user, status='completed', type='profit', created_at__gte=datetime.now() - timedelta(days=7)).sum('amount')
+                total_withdraw = Transaction.objects(user=user, status='completed', type='withdraw').sum('amount')
+                total_withdraw_fee = Transaction.objects(user=user, status='completed', type='withdraw_fee').sum('amount')
+                total_deposit = Transaction.objects(user=user, status='completed', type='deposit').sum('amount')
+                total_trade = Transaction.objects(user=user, status='completed', type='profit').count()
 
             total_withdraw = (total_withdraw + total_withdraw_fee) * -1
 
@@ -242,9 +265,12 @@ def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
             buttons = [
                 [InlineKeyboardButton(get_text(user.language, 'menu_topup'), callback_data='menu_topup')],
-                [InlineKeyboardButton(get_text(user.language, 'menu_withdraw_funds'), callback_data='menu_withdraw_funds')],
-                [InlineKeyboardButton(get_text(user.language, 'menu_referral'), callback_data='menu_referral')],
             ]
+            if not getattr(user, 'demo_mode', False):
+                buttons.append([InlineKeyboardButton(get_text(user.language, 'menu_withdraw_funds'), callback_data='menu_withdraw_funds')])
+            buttons.extend([
+                [InlineKeyboardButton(get_text(user.language, 'menu_referral'), callback_data='menu_referral')],
+            ])
             # Demo controls in profile
             if getattr(user, 'demo_mode', False):
                 buttons.append([InlineKeyboardButton(get_text(user.language, 'demo.disable'), callback_data='disable_demo')])
@@ -436,10 +462,28 @@ async def callback_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         user.save()
         update.callback_query.answer()
 
-        # # context.bot.delete_message(chat_id=update.callback_query.from_user.id, message_id=update.message.message_id)
-        # requests.post(f'https://api.telegram.org/bot{BOT_TOKEN}/sendMessage',
-        #                  data={'chat_id': WITHDRAW_GROUP, 'text': msg}).json()
-        return await context.bot.send_message(chat_id=update.callback_query.from_user.id, text=get_text(lang_code, 'welcome_back').format(name=update.callback_query.from_user.first_name), reply_markup=main_keyboard(lang_code), parse_mode='Markdown')
+        await context.bot.send_message(
+            chat_id=update.callback_query.from_user.id,
+            text=get_text(lang_code, 'welcome_back').format(name=update.callback_query.from_user.first_name),
+            reply_markup=main_keyboard(lang_code),
+            parse_mode='Markdown'
+        )
+        # Send demo offer after welcome
+        demo_buttons = []
+        if not getattr(user, 'demo_mode', False):
+            demo_buttons.append([InlineKeyboardButton(get_text(lang_code, 'demo.enable'), callback_data='enable_demo')])
+        else:
+            demo_buttons.append([InlineKeyboardButton(get_text(lang_code, 'demo.disable'), callback_data='disable_demo')])
+        if getattr(user, 'demo_claimed_at', None) is None:
+            demo_buttons.append([InlineKeyboardButton(get_text(lang_code, 'demo.claim'), callback_data='claim_demo')])
+        if len(demo_buttons) > 0:
+            await context.bot.send_message(
+                chat_id=update.callback_query.from_user.id,
+                text=f"🧪 {get_text(lang_code, 'demo.offer_title')}\n\n{get_text(lang_code, 'demo.offer_body')}",
+                reply_markup=InlineKeyboardMarkup(demo_buttons),
+                parse_mode='markdown'
+            )
+        return
     elif callback_data == 'menu_faqs':
         keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton(get_text(user.language, 'faq_how_it_works_button'), callback_data='faq_how_it_works')],
@@ -645,12 +689,20 @@ async def callback_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         ])
         return await update.callback_query.edit_message_text(get_text(user.language, 'rewardhub_message'), reply_markup=keyboard)
     elif callback_data == 'back_to_account':
-        total_balance = Transaction.objects(user=user, status='completed').sum('amount')
-        in_calculation = Transaction.objects(user=user, status='completed', type='profit', created_at__gte=datetime.now() - timedelta(days=7)).sum('amount')
-        total_withdraw = Transaction.objects(user=user, status='completed', type='withdraw').sum('amount')
-        total_withdraw_fee = Transaction.objects(user=user, status='completed', type='withdraw_fee').sum('amount')
-        total_deposit = Transaction.objects(user=user, status='completed', type='deposit').sum('amount')
-        total_trade = Transaction.objects(user=user, status='completed', type='profit').count()
+        if getattr(user, 'demo_mode', False):
+            total_balance = round(float(user.demo_balance or 0.0), 2)
+            in_calculation = 0
+            total_withdraw = 0
+            total_withdraw_fee = 0
+            total_deposit = 0
+            total_trade = 0
+        else:
+            total_balance = Transaction.objects(user=user, status='completed').sum('amount')
+            in_calculation = Transaction.objects(user=user, status='completed', type='profit', created_at__gte=datetime.now() - timedelta(days=7)).sum('amount')
+            total_withdraw = Transaction.objects(user=user, status='completed', type='withdraw').sum('amount')
+            total_withdraw_fee = Transaction.objects(user=user, status='completed', type='withdraw_fee').sum('amount')
+            total_deposit = Transaction.objects(user=user, status='completed', type='deposit').sum('amount')
+            total_trade = Transaction.objects(user=user, status='completed', type='profit').count()
 
         total_withdraw = (total_withdraw + total_withdraw_fee) * -1
 
@@ -658,9 +710,10 @@ async def callback_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
         buttons = [
             [InlineKeyboardButton(get_text(user.language, 'menu_topup'), callback_data='menu_topup')],
-            [InlineKeyboardButton(get_text(user.language, 'menu_withdraw_funds'), callback_data='menu_withdraw_funds')],
-            [InlineKeyboardButton(get_text(user.language, 'menu_referral'), callback_data='menu_referral')],
         ]
+        if not getattr(user, 'demo_mode', False):
+            buttons.append([InlineKeyboardButton(get_text(user.language, 'menu_withdraw_funds'), callback_data='menu_withdraw_funds')])
+        buttons.append([InlineKeyboardButton(get_text(user.language, 'menu_referral'), callback_data='menu_referral')])
         # Demo controls in profile
         if getattr(user, 'demo_mode', False):
             buttons.append([InlineKeyboardButton(get_text(user.language, 'demo.disable'), callback_data='disable_demo')])
@@ -746,22 +799,39 @@ def profile_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         ])
         return update.message.reply_text(get_text(user.language, 'join_channel_message'), reply_markup=keyboard, parse_mode="markdown")
     
-    total_balance = Transaction.objects(user=user, status='completed').sum('amount')
-    in_calculation = Transaction.objects(user=user, status='completed', type='profit', created_at__gte=datetime.now() - timedelta(days=7)).sum('amount')
-    total_withdraw = Transaction.objects(user=user, status='completed', type='withdraw').sum('amount')
-    total_withdraw_fee = Transaction.objects(user=user, status='completed', type='withdraw_fee').sum('amount')
-    total_deposit = Transaction.objects(user=user, status='completed', type='deposit').sum('amount')
-    total_trade = Transaction.objects(user=user, status='completed', type='profit').count()
+    if getattr(user, 'demo_mode', False):
+        total_balance = round(float(user.demo_balance or 0.0), 2)
+        in_calculation = 0
+        total_withdraw = 0
+        total_withdraw_fee = 0
+        total_deposit = 0
+        total_trade = 0
+    else:
+        total_balance = Transaction.objects(user=user, status='completed').sum('amount')
+        in_calculation = Transaction.objects(user=user, status='completed', type='profit', created_at__gte=datetime.now() - timedelta(days=7)).sum('amount')
+        total_withdraw = Transaction.objects(user=user, status='completed', type='withdraw').sum('amount')
+        total_withdraw_fee = Transaction.objects(user=user, status='completed', type='withdraw_fee').sum('amount')
+        total_deposit = Transaction.objects(user=user, status='completed', type='deposit').sum('amount')
+        total_trade = Transaction.objects(user=user, status='completed', type='profit').count()
 
     total_withdraw = (total_withdraw + total_withdraw_fee) * -1
 
     join_date = user.joined_at.strftime('%Y-%m-%d %H:%M:%S')
 
-    keyboard_markup = InlineKeyboardMarkup([
+    buttons = [
         [InlineKeyboardButton(get_text(user.language, 'menu_topup'), callback_data='menu_topup')],
-        [InlineKeyboardButton(get_text(user.language, 'menu_withdraw_funds'), callback_data='menu_withdraw_funds')],
-        [InlineKeyboardButton(get_text(user.language, 'menu_referral'), callback_data='menu_referral')],
-    ])
+    ]
+    if not getattr(user, 'demo_mode', False):
+        buttons.append([InlineKeyboardButton(get_text(user.language, 'menu_withdraw_funds'), callback_data='menu_withdraw_funds')])
+    buttons.append([InlineKeyboardButton(get_text(user.language, 'menu_referral'), callback_data='menu_referral')])
+    # Demo controls in profile
+    if getattr(user, 'demo_mode', False):
+        buttons.append([InlineKeyboardButton(get_text(user.language, 'demo.disable'), callback_data='disable_demo')])
+    else:
+        buttons.append([InlineKeyboardButton(get_text(user.language, 'demo.enable'), callback_data='enable_demo')])
+    if getattr(user, 'demo_claimed_at', None) is None:
+        buttons.append([InlineKeyboardButton(get_text(user.language, 'demo.claim'), callback_data='claim_demo')])
+    keyboard_markup = InlineKeyboardMarkup(buttons)
 
     return update.message.reply_text(
         get_text(user.language, 'account_summary_message').format(
